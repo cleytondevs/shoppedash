@@ -54,3 +54,20 @@ export function useUploadCsv() {
     },
   });
 }
+
+export function useReports(date?: string, range?: 'today' | 'yesterday' | 'week' | 'month') {
+  return useQuery({
+    queryKey: [api.reports.list.path, date, range],
+    queryFn: async () => {
+      let url = api.reports.list.path;
+      const params = new URLSearchParams();
+      if (date) params.append('date', date);
+      if (range) params.append('range', range);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch reports");
+      return api.reports.list.responses[200].parse(await res.json());
+    },
+  });
+}

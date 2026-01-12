@@ -155,12 +155,19 @@ export async function registerRoutes(
   app.post(api.reports.manual.path, async (req, res) => {
     try {
       const input = insertRelatorioSchema.parse(req.body);
+      // Garantir que a data enviada seja usada exatamente
+      const manualData = input.data;
+      
       // Calcular lucro
       const receita = Number(input.receita_total || 0);
       const gasto = Number(input.gasto_total || 0);
       input.lucro = String(receita - gasto);
       
-      const [report] = await storage.upsertManualReport(input);
+      // Upsert usando a data específica do input
+      const [report] = await storage.upsertManualReport({
+        ...input,
+        data: manualData
+      });
       res.json(report);
     } catch (err) {
       if (err instanceof z.ZodError) {

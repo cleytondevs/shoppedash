@@ -110,21 +110,37 @@ export async function registerRoutes(
     try {
       const { data_planilha, registros } = req.body;
       
-      // Basic validation of date
       if (!data_planilha) {
         return res.status(400).json({ message: "Data da planilha é obrigatória" });
       }
 
-      // Map raw records to schema
-      // Assumindo que o front já mandou formatado ou quase formatado
-      // Precisamos garantir que campos numéricos venham como strings numéricas ou numbers
-      const formattedRecords = registros.map((r: any) => ({
-        data: data_planilha,
-        receita: String(r.receita || 0).replace(',', '.'), // Basic cleanup
-        sub_id: r.sub_id || null,
-        nome_produto: r.nome_produto || 'Produto sem nome',
-        quantidade: Number(r.quantidade) || 1,
-      }));
+      // Mapeamento seguindo as novas regras obrigatórias
+      const formattedRecords = registros
+        .map((r: any) => {
+          // 2. O nome do produto deve vir exclusivamente da coluna: "Nome do Item"
+          const nomeProduto = r["Nome do Item"];
+
+          // Se for null, vazio, undefined ou NaN → descartar a linha
+          if (!nomeProduto || nomeProduto === "NaN") {
+            return null;
+          }
+
+          // 3. Receita deve vir de: "Comissão líquida do afiliado(R$)"
+          const receitaRaw = r["Comissão líquida do afiliado(R$)"];
+          const receitaNum = parseFloat(String(receitaRaw || 0).replace(',', '.'));
+
+          // 4. Classificação: Se "Sub_id1" existir -> Redes Sociais, senão Shopee Vídeo
+          const subId = r["Sub_id1"] || null;
+
+          return {
+            data: data_planilha,
+            receita: receitaNum.toFixed(2),
+            sub_id: subId,
+            nome_produto: nomeProduto,
+            quantidade: 1, // Mantido como fallback para o esquema
+          };
+        })
+        .filter((r): r is any => r !== null);
 
       const count = await storage.replaceDailySales(data_planilha, formattedRecords);
       res.json({ message: "Sucesso", count });

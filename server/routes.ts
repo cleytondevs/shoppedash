@@ -69,10 +69,7 @@ export async function registerRoutes(
       
       if (existing) {
         existing.receitaNum += receitaNum;
-        // Opcional: concatenar nomes se forem diferentes, ou manter o primeiro
-        if (p.nome_produto && !existing.nome_produto.includes(p.nome_produto)) {
-          // Simplificação: apenas mantém o primeiro nome ou indica que é agrupado
-        }
+        existing.quantidade += (Number(p.quantidade) || 1);
       } else {
         grouped.set(groupKey, {
           id: p.id,
@@ -80,6 +77,7 @@ export async function registerRoutes(
           nome_produto: p.sub_id ? `Agrupado: ${p.sub_id}` : 'Shopee Vídeo (Agrupado)',
           sub_id: p.sub_id,
           receitaNum: receitaNum,
+          quantidade: Number(p.quantidade) || 1,
           origem: p.sub_id ? 'Redes Sociais' : 'Shopee Vídeo'
         });
       }

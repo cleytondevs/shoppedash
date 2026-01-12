@@ -131,6 +131,7 @@ export default function Dashboard() {
                           <TableHead className="w-[100px]">Data</TableHead>
                           <TableHead>Produto</TableHead>
                           <TableHead>Sub ID</TableHead>
+                          <TableHead>Qtd</TableHead>
                           <TableHead>Origem</TableHead>
                           <TableHead className="text-right">Receita</TableHead>
                         </TableRow>
@@ -144,6 +145,9 @@ export default function Dashboard() {
                             </TableCell>
                             <TableCell className="font-mono text-xs text-muted-foreground">
                               {item.sub_id || "-"}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">
+                              {item.quantidade || 1}
                             </TableCell>
                             <TableCell>
                               {item.origem === 'Redes Sociais' ? (

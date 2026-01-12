@@ -48,6 +48,7 @@ export const api = {
           receita: z.string(),
           data: z.string(),
           sub_id: z.string().nullable(),
+          quantidade: z.number().optional(),
           origem: z.enum(['Redes Sociais', 'Shopee Vídeo']),
         })),
       },

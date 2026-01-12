@@ -1,0 +1,162 @@
+IMPORTANTE:
+NÃO refatore código existente.
+NÃO crie tabelas novas.
+NÃO renomeie tabelas ou colunas.
+NÃO altere a estrutura do banco.
+O backend JÁ EXISTE no Supabase.
+Você deve criar APENAS o FRONTEND.
+
+TABELAS EXISTENTES NO SUPABASE (use exatamente estes nomes):
+- shopee_vendas
+- vendas_redes_sociais
+- vendas_shopee_video
+- relatorios
+- relatorios_semanais
+- relatorios_mensais
+- gastos
+
+==============================
+OBJETIVO DO SISTEMA
+==============================
+
+Criar um dashboard financeiro que:
+- leia vendas do Supabase
+- diferencie produtos COM sub_id e SEM sub_id
+- permita upload diário de planilha CSV
+- permita criar relatórios diários (automáticos e manuais)
+- mantenha histórico correto
+- não gere duplicação nem números irreais
+
+==============================
+REGRAS DE NEGÓCIO
+==============================
+
+1) ORIGEM DAS VENDAS
+
+- Produtos COM sub_id:
+  • origem: Redes Sociais
+  • dados vêm de: vendas_redes_sociais
+  • podem gerar relatórios
+
+- Produtos SEM sub_id:
+  • origem: Shopee Vídeo
+  • dados vêm de: vendas_shopee_video
+  • apenas visualização
+  • NÃO geram relatório
+
+==============================
+2) DASHBOARD PRINCIPAL
+==============================
+
+Mostrar cards com:
+- Ganhos Redes Sociais = soma(vendas_redes_sociais.receita)
+- Ganhos Shopee Vídeo = soma(vendas_shopee_video.receita)
+
+Criar um bloco:
+- “Todos os produtos”
+- Destacar visualmente:
+  • COM sub_id → Redes Sociais
+  • SEM sub_id → Shopee Vídeo
+
+==============================
+3) UPLOAD DE PLANILHA CSV
+==============================
+
+Criar botão "Upload de planilha".
+
+Fluxo obrigatório:
+1. Ler CSV (PapaParse)
+2. Converter receita corretamente (decimal)
+3. Executar:
+   - DELETE FROM shopee_vendas WHERE data = DATA_DA_PLANILHA
+4. Inserir os novos registros do CSV
+5. NÃO alterar relatórios existentes
+6. A planilha é TEMPORÁRIA (não substitui relatórios)
+
+==============================
+4) RELATÓRIO DIÁRIO AUTOMÁTICO
+==============================
+
+- Criado a partir das vendas do dia
+- Usar a tabela: relatorios
+- Identificador único:
+  • sub_id + data
+- Receita:
+  • soma das vendas daquele sub_id naquele dia
+- Usar UPSERT com onConflict=sub_id,data
+
+==============================
+5) RELATÓRIO MANUAL (OBRIGATÓRIO)
+==============================
+
+Adicionar opção "Criar relatório manual" para produtos COM sub_id.
+
+Regras:
+- Usar a tabela EXISTENTE: relatorios
+- NÃO criar tabela nova
+- Identificador único: sub_id + data
+- Usar UPSERT com onConflict=sub_id,data
+
+Funcionamento:
+- Abrir modal com:
+  • sub_id (somente leitura)
+  • data (date picker – qualquer dia, inclusive passado)
+  • receita_total (pré-calculada a partir das vendas da data escolhida)
+- Ao salvar:
+  • receita_total = soma das vendas do sub_id na data
+  • gasto_total = 0
+  • lucro = receita_total - gasto_total
+
+Relatório manual:
+- NÃO apaga relatórios automáticos
+- NÃO duplica dados
+- Pode atualizar um dia já existente
+
+==============================
+6) GASTOS
+==============================
+
+- Gastos são sempre vinculados a relatorios.id
+- Tabela: gastos
+- Permitir:
+  • adicionar gastos depois
+  • atualizar gasto_total
+  • recalcular lucro automaticamente
+
+==============================
+7) RELATÓRIOS SEMANAIS E MENSAIS
+==============================
+
+- Ler dados da tabela relatorios
+- Mostrar dados já existentes em:
+  • relatorios_semanais
+  • relatorios_mensais
+- NÃO recalcular no front
+- Apenas exibir
+
+==============================
+8) FILTROS
+==============================
+
+Criar filtros no painel de relatórios:
+- Hoje
+- Ontem
+- Semana
+- Mês
+
+Os filtros devem consultar:
+- relatorios (diário)
+- relatorios_semanais
+- relatorios_mensais
+
+==============================
+REGRAS FINAIS
+==============================
+
+- NÃO criar tabelas como "products"
+- NÃO renomear colunas
+- NÃO mudar lógica de backend
+- NÃO refatorar arquitetura
+- NÃO inventar dados
+
+APENAS criar o front-end consumindo essas tabelas do Supabase.

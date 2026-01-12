@@ -76,7 +76,7 @@ export default function Dashboard() {
               />
               <MetricCard
                 title="Total Geral"
-                value={`R$ ${(parseFloat((stats?.ganhosRedesSociais || "0").replace("R$ ", "").replace(".", "").replace(",", ".")) + parseFloat((stats?.ganhosShopeeVideo || "0").replace("R$ ", "").replace(".", "").replace(",", "."))).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                value={`R$ ${(parseFloat(stats?.ganhosRedesSociais || "0") + parseFloat(stats?.ganhosShopeeVideo || "0")).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                 description="Consolidado do período"
                 icon={<Calendar className="h-4 w-4" />}
                 className="hover:-translate-y-1"

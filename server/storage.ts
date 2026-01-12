@@ -123,12 +123,33 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async getReports(date?: string, range?: string): Promise<any[]> {
+  async getReports(date?: string, range?: string, startDate?: string, endDate?: string): Promise<any[]> {
+    let whereClause = sql`1=1`;
+
     if (date) {
-      return await db.select().from(relatorios).where(eq(relatorios.data, date));
+      whereClause = eq(relatorios.data, date);
+    } else if (startDate && endDate) {
+      whereClause = sql`${relatorios.data} BETWEEN ${startDate} AND ${endDate}`;
+    } else if (range) {
+      const today = new Date();
+      let start: Date;
+      
+      if (range === 'today') {
+        const d = today.toISOString().split('T')[0];
+        whereClause = eq(relatorios.data, d);
+      } else if (range === 'yesterday') {
+        const y = new Date(today.setDate(today.getDate() - 1)).toISOString().split('T')[0];
+        whereClause = eq(relatorios.data, y);
+      } else if (range === 'week') {
+        const w = new Date(today.setDate(today.getDate() - 7)).toISOString().split('T')[0];
+        whereClause = sql`${relatorios.data} >= ${w}`;
+      } else if (range === 'month') {
+        const m = today.toISOString().slice(0, 7) + '-01';
+        whereClause = sql`${relatorios.data} >= ${m}`;
+      }
     }
-    // Implementar lógica de range se necessário, ou retornar tudo limitado
-    return await db.select().from(relatorios).orderBy(desc(relatorios.data)).limit(50);
+
+    return await db.select().from(relatorios).where(whereClause).orderBy(desc(relatorios.data));
   }
 
   async upsertManualReport(report: InsertRelatorio): Promise<any> {

@@ -17,10 +17,17 @@ import { ptBR } from "date-fns/locale";
 export default function Dashboard() {
   const [productSearch, setProductSearch] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [reportFilter, setReportFilter] = useState<{ range: 'today' | 'yesterday' | 'week' | 'month'; startDate?: string; endDate?: string }>({ range: 'today' });
   
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: products, isLoading: productsLoading } = useDashboardProducts();
-  const { data: reports, isLoading: reportsLoading } = useReports('today');
+  const { data: reports, isLoading: reportsLoading } = useReports(undefined, reportFilter.range);
+
+  const reportTotals = reports?.reduce((acc, report) => ({
+    receita: acc.receita + parseFloat(report.receita_total || "0"),
+    gastos: acc.gastos + parseFloat(report.gasto_total || "0"),
+    lucro: acc.lucro + parseFloat(report.lucro || "0"),
+  }), { receita: 0, gastos: 0, lucro: 0 }) || { receita: 0, gastos: 0, lucro: 0 };
 
   const filteredProducts = products?.filter(p => 
     p.nome_produto?.toLowerCase().includes(productSearch.toLowerCase()) || 
@@ -174,10 +181,42 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4 animate-enter delay-100">
+            <div className="grid gap-6 md:grid-cols-3">
+              <MetricCard
+                title="Receita do Período"
+                value={`R$ ${reportTotals.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                variant="success"
+              />
+              <MetricCard
+                title="Gastos do Período"
+                value={`R$ ${reportTotals.gastos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                variant="destructive"
+              />
+              <MetricCard
+                title="Lucro do Período"
+                value={`R$ ${reportTotals.lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                variant={reportTotals.lucro >= 0 ? "success" : "destructive"}
+              />
+            </div>
+
             <Card className="border-border/50 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-xl font-display">Relatórios de Lucro</CardTitle>
-                <CardDescription>Acompanhamento de receita, gastos e lucro líquido</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-display">Relatórios de Lucro</CardTitle>
+                  <CardDescription>Acompanhamento de receita, gastos e lucro líquido</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  {(['today', 'yesterday', 'week', 'month'] as const).map((r) => (
+                    <Button 
+                      key={r}
+                      variant={reportFilter.range === r ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setReportFilter({ range: r })}
+                    >
+                      {r === 'today' ? 'Hoje' : r === 'yesterday' ? 'Ontem' : r === 'week' ? '7 dias' : 'Mês'}
+                    </Button>
+                  ))}
+                </div>
               </CardHeader>
               <CardContent>
                 {reportsLoading ? (

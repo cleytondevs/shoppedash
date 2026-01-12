@@ -148,7 +148,13 @@ export async function registerRoutes(
 
   // Reports
   app.get(api.reports.list.path, async (req, res) => {
-    const reports = await storage.getReports(req.query.date as string);
+    const { date, range, startDate, endDate } = req.query;
+    const reports = await storage.getReports(
+      date as string, 
+      range as string, 
+      startDate as string, 
+      endDate as string
+    );
     res.json(reports);
   });
 

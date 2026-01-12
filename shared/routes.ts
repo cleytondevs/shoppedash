@@ -78,6 +78,8 @@ export const api = {
       input: z.object({
         date: z.string().optional(),
         range: z.enum(['today', 'yesterday', 'week', 'month']).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
       }).optional(),
       responses: {
         200: z.array(z.custom<typeof relatorios.$inferSelect>()),

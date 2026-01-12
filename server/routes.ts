@@ -87,6 +87,7 @@ export async function registerRoutes(
     });
 
     // Adicionar os grupos de Shopee Vídeo filtrando receita > 0
+    /* 
     grouped.forEach(item => {
       if (item.receitaNum > 0) {
         finalProducts.push({
@@ -95,6 +96,7 @@ export async function registerRoutes(
         });
       }
     });
+    */
 
     // Ordenar por data decrescente
     finalProducts.sort((a, b) => {

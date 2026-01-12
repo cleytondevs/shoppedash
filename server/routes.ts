@@ -36,7 +36,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   // Seed on startup
-  seedData().catch(console.error);
+  // seedData().catch(console.error);
 
   // Dashboard Stats
   app.get(api.dashboard.stats.path, async (req, res) => {

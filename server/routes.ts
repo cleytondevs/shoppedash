@@ -52,12 +52,57 @@ export async function registerRoutes(
   app.get(api.dashboard.products.path, async (req, res) => {
     const filter = req.query.filter as 'all' | 'social' | 'video' | undefined;
     const products = await storage.getProducts(filter);
-    // Mapear para o formato de resposta com 'origem'
-    const mapped = products.map(p => ({
-      ...p,
-      origem: p.sub_id ? 'Redes Sociais' : 'Shopee Vídeo'
-    }));
-    res.json(mapped);
+    
+    // Agrupar produtos Shopee Vídeo por data e somar receita
+    const grouped = new Map<string, any>();
+    const finalProducts: any[] = [];
+
+    products.forEach(p => {
+      if (!p.sub_id) {
+        // Shopee Vídeo: Agrupar por data
+        const dateKey = p.data instanceof Date ? p.data.toISOString().split('T')[0] : String(p.data);
+        const existing = grouped.get(dateKey);
+        const receitaNum = parseFloat(String(p.receita || 0).replace(',', '.'));
+        
+        if (existing) {
+          existing.receitaNum += receitaNum;
+        } else {
+          grouped.set(dateKey, {
+            id: p.id, // Manter um ID de referência
+            data: p.data,
+            nome_produto: 'Shopee Vídeo (Agrupado)',
+            sub_id: null,
+            receitaNum: receitaNum,
+            origem: 'Shopee Vídeo'
+          });
+        }
+      } else {
+        // Redes Sociais: Manter individual
+        finalProducts.push({
+          ...p,
+          origem: 'Redes Sociais'
+        });
+      }
+    });
+
+    // Adicionar os grupos de Shopee Vídeo filtrando receita > 0
+    grouped.forEach(item => {
+      if (item.receitaNum > 0) {
+        finalProducts.push({
+          ...item,
+          receita: item.receitaNum.toFixed(2)
+        });
+      }
+    });
+
+    // Ordenar por data decrescente
+    finalProducts.sort((a, b) => {
+      const dateA = new Date(a.data).getTime();
+      const dateB = new Date(b.data).getTime();
+      return dateB - dateA;
+    });
+
+    res.json(finalProducts);
   });
 
   // Upload CSV

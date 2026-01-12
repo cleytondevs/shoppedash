@@ -29,16 +29,63 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  async getDashboardStats(): Promise<DashboardStats> {
-    // Ganhos Redes Sociais = soma(vendas_redes_sociais.receita)
-    const [social] = await db
-      .select({ total: sum(vendas_redes_sociais.receita) })
-      .from(vendas_redes_sociais);
+  async getDashboardStats(range: string = 'all'): Promise<DashboardStats> {
+    const today = new Date();
+    let startDate: Date | null = null;
 
-    // Ganhos Shopee Vídeo = soma(vendas_shopee_video.receita)
+    if (range === 'today') {
+      startDate = new Date(today.setHours(0, 0, 0, 0));
+    } else if (range === 'yesterday') {
+      startDate = new Date(today.setDate(today.getDate() - 1));
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const [social] = await db
+        .select({ total: sum(shopee_vendas.receita) })
+        .from(shopee_vendas)
+        .where(and(
+          sql`${shopee_vendas.sub_id} IS NOT NULL`,
+          sql`${shopee_vendas.data} = ${startDate.toISOString().split('T')[0]}`
+        ));
+
+      const [video] = await db
+        .select({ total: sum(shopee_vendas.receita) })
+        .from(shopee_vendas)
+        .where(and(
+          sql`${shopee_vendas.sub_id} IS NULL`,
+          sql`${shopee_vendas.data} = ${startDate.toISOString().split('T')[0]}`
+        ));
+
+      return {
+        ganhosRedesSociais: social?.total || '0',
+        ganhosShopeeVideo: video?.total || '0',
+      };
+    } else if (range === 'week') {
+      startDate = new Date(today.setDate(today.getDate() - 7));
+    } else if (range === 'month') {
+      startDate = new Date(today.setMonth(today.getMonth() - 1));
+    }
+
+    const dateFilter = startDate 
+      ? sql`${shopee_vendas.data} >= ${startDate.toISOString().split('T')[0]}`
+      : sql`1=1`;
+
+    const [social] = await db
+      .select({ total: sum(shopee_vendas.receita) })
+      .from(shopee_vendas)
+      .where(and(
+        sql`${shopee_vendas.sub_id} IS NOT NULL`,
+        dateFilter
+      ));
+
     const [video] = await db
-      .select({ total: sum(vendas_shopee_video.receita) })
-      .from(vendas_shopee_video);
+      .select({ total: sum(shopee_vendas.receita) })
+      .from(shopee_vendas)
+      .where(and(
+        sql`${shopee_vendas.sub_id} IS NULL`,
+        dateFilter
+      ));
 
     return {
       ganhosRedesSociais: social?.total || '0',

@@ -41,7 +41,8 @@ export async function registerRoutes(
   // Dashboard Stats
   app.get(api.dashboard.stats.path, async (req, res) => {
     try {
-      const stats = await storage.getDashboardStats();
+      const range = req.query.range as string || 'all';
+      const stats = await storage.getDashboardStats(range);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Erro ao buscar estatísticas" });

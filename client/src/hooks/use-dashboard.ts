@@ -88,8 +88,7 @@ export function useUploadCsv() {
           receita: Number(parseFloat(row.receita || "0").toFixed(2)),
           sub_id: row.sub_id || null,
           user_id: user.id 
-        })))
-        .select();
+        })));
       
       if (error) throw error;
       return data;
@@ -159,8 +158,7 @@ export function useCreateManualReport() {
           gasto_total: report.gasto_total,
           lucro: report.lucro,
           user_id: user.id 
-        }, { onConflict: 'sub_id,data' })
-        .select();
+        }, { onConflict: 'sub_id,data' });
       if (error) throw error;
       return data[0];
     },
@@ -184,8 +182,7 @@ export function useCreateExpense() {
           descricao: expense.descricao,
           valor: expense.valor,
           user_id: user.id 
-        })
-        .select();
+        });
       if (error) throw error;
       return data[0];
     },

@@ -85,8 +85,8 @@ export function useUploadCsv() {
         .insert(rows.map(row => ({ 
           data: row.data,
           nome: row.nome,
-          receita: row.receita,
-          sub_id: row.sub_id,
+          receita: Number(parseFloat(row.receita || "0").toFixed(2)),
+          sub_id: row.sub_id || null,
           user_id: user.id 
         })))
         .select();

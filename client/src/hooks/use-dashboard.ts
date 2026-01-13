@@ -6,9 +6,13 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ["supabase", "stats"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase
         .from('shopee_vendas')
-        .select('receita, sub_id');
+        .select('receita, sub_id')
+        .eq('user_id', user.id);
       
       if (error) throw error;
 
@@ -36,7 +40,14 @@ export function useDashboardProducts(filter?: 'all' | 'social' | 'video') {
   return useQuery({
     queryKey: ["supabase", "products", filter],
     queryFn: async () => {
-      let query = supabase.from('shopee_vendas').select('*').order('data', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      let query = supabase
+        .from('shopee_vendas')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('data', { ascending: false });
       
       if (filter === 'social') {
         query = query.not('sub_id', 'is', null);
@@ -58,17 +69,20 @@ export function useUploadCsv() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (rows: any[]) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       // Como o backend fazia delete + insert, aqui fazemos o equivalente
       const { error: delError } = await supabase
         .from('shopee_vendas')
         .delete()
-        .neq('id', -1); // Deleta tudo de forma segura
+        .eq('user_id', user.id); // Deleta apenas os dados do usuário
       
       if (delError) throw delError;
 
       const { data, error } = await supabase
         .from('shopee_vendas')
-        .insert(rows)
+        .insert(rows.map(row => ({ ...row, user_id: user.id })))
         .select();
       
       if (error) throw error;
@@ -85,7 +99,14 @@ export function useReports(date?: string, range?: 'today' | 'yesterday' | 'week'
   return useQuery({
     queryKey: ["supabase", "reports", date, range],
     queryFn: async () => {
-      let query = supabase.from('relatorios').select('*').order('data', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      let query = supabase
+        .from('relatorios')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('data', { ascending: false });
 
       if (date) {
         query = query.eq('data', date);
@@ -120,9 +141,12 @@ export function useCreateManualReport() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (report: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase
         .from('relatorios')
-        .upsert(report, { onConflict: 'sub_id,data' })
+        .upsert({ ...report, user_id: user.id }, { onConflict: 'sub_id,data' })
         .select();
       if (error) throw error;
       return data[0];
@@ -137,9 +161,12 @@ export function useCreateExpense() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (expense: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase
         .from('gastos')
-        .insert(expense)
+        .insert({ ...expense, user_id: user.id })
         .select();
       if (error) throw error;
       return data[0];

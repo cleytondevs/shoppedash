@@ -82,7 +82,13 @@ export function useUploadCsv() {
 
       const { data, error } = await supabase
         .from('shopee_vendas')
-        .insert(rows.map(row => ({ ...row, user_id: user.id })))
+        .insert(rows.map(row => ({ 
+          data: row.data,
+          nome: row.nome,
+          receita: row.receita,
+          sub_id: row.sub_id,
+          user_id: user.id 
+        })))
         .select();
       
       if (error) throw error;
@@ -146,7 +152,14 @@ export function useCreateManualReport() {
 
       const { data, error } = await supabase
         .from('relatorios')
-        .upsert({ ...report, user_id: user.id }, { onConflict: 'sub_id,data' })
+        .upsert({ 
+          sub_id: report.sub_id,
+          data: report.data,
+          receita_total: report.receita_total,
+          gasto_total: report.gasto_total,
+          lucro: report.lucro,
+          user_id: user.id 
+        }, { onConflict: 'sub_id,data' })
         .select();
       if (error) throw error;
       return data[0];
@@ -166,7 +179,12 @@ export function useCreateExpense() {
 
       const { data, error } = await supabase
         .from('gastos')
-        .insert({ ...expense, user_id: user.id })
+        .insert({ 
+          relatorio_id: expense.relatorio_id,
+          descricao: expense.descricao,
+          valor: expense.valor,
+          user_id: user.id 
+        })
         .select();
       if (error) throw error;
       return data[0];

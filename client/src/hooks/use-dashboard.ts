@@ -69,26 +69,14 @@ export function useUploadCsv() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (rows: any[]) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
-      // Como o backend fazia delete + insert, aqui fazemos o equivalente
-      const { error: delError } = await supabase
-        .from('shopee_vendas')
-        .delete()
-        .eq('user_id', user.id); // Deleta apenas os dados do usuário
-      
-      if (delError) throw delError;
-
       const { data, error } = await supabase
         .from('shopee_vendas')
         .insert(rows.map(row => ({ 
           data: row.data,
           nome: row.nome,
-          receita: Number(parseFloat(row.receita || "0").toFixed(2)),
-          sub_id: row.sub_id || null,
-          user_id: user.id 
-        })), { count: null } as any);
+          receita: Number(parseFloat(String(row.receita || "0").replace("R$", "").replace(".", "").replace(",", ".")).toFixed(2)),
+          sub_id: row.sub_id || null
+        })));
       
       if (error) throw error;
       return data;
@@ -146,9 +134,6 @@ export function useCreateManualReport() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (report: any) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
       const { data, error } = await supabase
         .from('relatorios')
         .upsert({ 
@@ -156,11 +141,10 @@ export function useCreateManualReport() {
           data: report.data,
           receita_total: report.receita_total,
           gasto_total: report.gasto_total,
-          lucro: report.lucro,
-          user_id: user.id 
-        }, { onConflict: 'sub_id,data', count: null } as any);
+          lucro: report.lucro
+        }, { onConflict: 'sub_id,data' });
       if (error) throw error;
-      return data[0];
+      return data ? data[0] : null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });
@@ -172,19 +156,15 @@ export function useCreateExpense() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (expense: any) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
       const { data, error } = await supabase
         .from('gastos')
         .insert({ 
           relatorio_id: expense.relatorio_id,
           descricao: expense.descricao,
-          valor: expense.valor,
-          user_id: user.id 
-        }, { count: null } as any);
+          valor: expense.valor
+        });
       if (error) throw error;
-      return data[0];
+      return data ? data[0] : null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });

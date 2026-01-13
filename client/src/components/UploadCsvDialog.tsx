@@ -37,7 +37,7 @@ export function UploadCsvDialog() {
           // Transformar dados do CSV para o formato da tabela Supabase
           const mappedRows = results.data.map((row: any) => ({
             data: date,
-            nome_produto: row['Nome do produto'] || row['Product Name'] || null,
+            nome: row['Nome do produto'] || row['Product Name'] || null,
             receita: row['Receita'] || row['Revenue'] || "0",
             sub_id: row['Sub ID'] || null,
           }));

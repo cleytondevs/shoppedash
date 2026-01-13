@@ -1,73 +1,151 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl } from "@shared/routes";
+import { supabase } from "@/lib/supabase";
 import { z } from "zod";
 
 export function useDashboardStats() {
   return useQuery({
-    queryKey: [api.dashboard.stats.path],
+    queryKey: ["supabase", "stats"],
     queryFn: async () => {
-      const res = await fetch(api.dashboard.stats.path, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch dashboard stats");
-      return api.dashboard.stats.responses[200].parse(await res.json());
-    },
+      const { data, error } = await supabase
+        .from('shopee_vendas')
+        .select('receita, sub_id');
+      
+      if (error) throw error;
+
+      let redesSociais = 0;
+      let shopeeVideo = 0;
+
+      data?.forEach(v => {
+        const valor = typeof v.receita === 'string' ? parseFloat(v.receita || "0") : (v.receita || 0);
+        if (v.sub_id) {
+          redesSociais += valor;
+        } else {
+          shopeeVideo += valor;
+        }
+      });
+
+      return {
+        ganhosRedesSociais: `R$ ${redesSociais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        ganhosShopeeVideo: `R$ ${shopeeVideo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+      };
+    }
   });
 }
 
 export function useDashboardProducts(filter?: 'all' | 'social' | 'video') {
   return useQuery({
-    queryKey: [api.dashboard.products.path, filter],
+    queryKey: ["supabase", "products", filter],
     queryFn: async () => {
-      const url = filter 
-        ? `${api.dashboard.products.path}?filter=${filter}` 
-        : api.dashboard.products.path;
+      let query = supabase.from('shopee_vendas').select('*').order('data', { ascending: false });
       
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch products");
-      return api.dashboard.products.responses[200].parse(await res.json());
-    },
+      if (filter === 'social') {
+        query = query.not('sub_id', 'is', null);
+      } else if (filter === 'video') {
+        query = query.is('sub_id', null);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data.map(v => ({
+        ...v,
+        origem: v.sub_id ? 'Redes Sociais' : 'Shopee Vídeo'
+      }));
+    }
   });
 }
 
 export function useUploadCsv() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: z.infer<typeof api.upload.csv.input>) => {
-      const res = await fetch(api.upload.csv.path, {
-        method: api.upload.csv.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
+    mutationFn: async (rows: any[]) => {
+      // Como o backend fazia delete + insert, aqui fazemos o equivalente
+      const { error: delError } = await supabase
+        .from('shopee_vendas')
+        .delete()
+        .neq('id', -1); // Deleta tudo de forma segura
       
-      if (!res.ok) {
-        if (res.status === 400) {
-          const error = api.upload.csv.responses[400].parse(await res.json());
-          throw new Error(error.message);
-        }
-        throw new Error("Failed to upload CSV");
-      }
-      return api.upload.csv.responses[200].parse(await res.json());
+      if (delError) throw delError;
+
+      const { data, error } = await supabase
+        .from('shopee_vendas')
+        .insert(rows)
+        .select();
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.dashboard.stats.path] });
-      queryClient.invalidateQueries({ queryKey: [api.dashboard.products.path] });
+      queryClient.invalidateQueries({ queryKey: ["supabase", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["supabase", "products"] });
     },
   });
 }
 
 export function useReports(date?: string, range?: 'today' | 'yesterday' | 'week' | 'month') {
   return useQuery({
-    queryKey: [api.reports.list.path, date, range],
+    queryKey: ["supabase", "reports", date, range],
     queryFn: async () => {
-      let url = api.reports.list.path;
-      const params = new URLSearchParams();
-      if (date) params.append('date', date);
-      if (range) params.append('range', range);
-      if (params.toString()) url += `?${params.toString()}`;
+      let query = supabase.from('relatorios').select('*').order('data', { ascending: false });
 
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch reports");
-      return api.reports.list.responses[200].parse(await res.json());
+      if (date) {
+        query = query.eq('data', date);
+      } else if (range) {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        if (range === 'today') {
+          query = query.eq('data', todayStr);
+        } else if (range === 'yesterday') {
+          const yesterday = new Date(today);
+          yesterday.setDate(today.getDate() - 1);
+          query = query.eq('data', yesterday.toISOString().split('T')[0]);
+        } else if (range === 'week') {
+          const lastWeek = new Date(today);
+          lastWeek.setDate(today.getDate() - 7);
+          query = query.gte('data', lastWeek.toISOString().split('T')[0]);
+        } else if (range === 'month') {
+          const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+          query = query.gte('data', firstDay.toISOString().split('T')[0]);
+        }
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    }
+  });
+}
+
+export function useCreateManualReport() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (report: any) => {
+      const { data, error } = await supabase
+        .from('relatorios')
+        .upsert(report, { onConflict: 'sub_id,data' })
+        .select();
+      if (error) throw error;
+      return data[0];
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });
+    }
+  });
+}
+
+export function useCreateExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (expense: any) => {
+      const { data, error } = await supabase
+        .from('gastos')
+        .insert(expense)
+        .select();
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });
+    }
   });
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign, Loader2 } from "lucide-react";
-import { useAddExpense } from "@/hooks/use-reports";
+import { useCreateExpense } from "@/hooks/use-dashboard";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddExpenseDialogProps {
@@ -16,7 +16,7 @@ export function AddExpenseDialog({ reportId }: AddExpenseDialogProps) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   
-  const addExpense = useAddExpense();
+  const addExpense = useCreateExpense();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

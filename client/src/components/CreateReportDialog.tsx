@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Loader2 } from "lucide-react";
-import { useCreateManualReport } from "@/hooks/use-reports";
+import { useCreateManualReport } from "@/hooks/use-dashboard";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 

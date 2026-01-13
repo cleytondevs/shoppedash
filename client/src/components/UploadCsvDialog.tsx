@@ -8,6 +8,7 @@ import { useUploadCsv } from "@/hooks/use-dashboard";
 import { useToast } from "@/hooks/use-toast";
 import Papa from "papaparse";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export function UploadCsvDialog() {
   const [open, setOpen] = useState(false);
@@ -29,13 +30,19 @@ export function UploadCsvDialog() {
     setIsParsing(true);
     Papa.parse(file, {
       header: true,
+      skipEmptyLines: true,
       complete: async (results) => {
         setIsParsing(false);
         try {
-          await uploadCsv.mutateAsync({
-            data_planilha: date,
-            registros: results.data,
-          });
+          // Transformar dados do CSV para o formato da tabela Supabase
+          const mappedRows = results.data.map((row: any) => ({
+            data: date,
+            nome_produto: row['Nome do produto'] || row['Product Name'] || null,
+            receita: row['Receita'] || row['Revenue'] || "0",
+            sub_id: row['Sub ID'] || null,
+          }));
+
+          await uploadCsv.mutateAsync(mappedRows);
           toast({
             title: "Sucesso!",
             description: `Importação concluída. ${results.data.length} registros processados.`,
@@ -149,6 +156,3 @@ export function UploadCsvDialog() {
     </Dialog>
   );
 }
-
-// Helper util
-import { cn } from "@/lib/utils";

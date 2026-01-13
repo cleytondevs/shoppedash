@@ -226,41 +226,77 @@ export default function Dashboard() {
                     <Skeleton className="h-12 w-full" />
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-border/50 overflow-hidden">
-                    <Table>
-                      <TableHeader className="bg-muted/30">
-                        <TableRow>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Sub ID</TableHead>
-                          <TableHead className="text-right">Receita</TableHead>
-                          <TableHead className="text-right">Gastos</TableHead>
-                          <TableHead className="text-right">Lucro</TableHead>
-                          <TableHead className="w-[100px]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {reports?.map((report) => (
-                          <TableRow key={report.id}>
-                            <TableCell className="font-mono text-xs">{format(new Date(report.data), "dd/MM/yyyy")}</TableCell>
-                            <TableCell className="font-medium">{report.sub_id}</TableCell>
-                            <TableCell className="text-right text-green-600 font-medium">
-                              R$ {report.receita_total}
-                            </TableCell>
-                            <TableCell className="text-right text-red-500 font-medium">
-                              R$ {report.gasto_total}
-                            </TableCell>
-                            <TableCell className="text-right font-bold">
-                              <span className={parseFloat(report.lucro || "0") >= 0 ? "text-green-700" : "text-red-700"}>
-                                R$ {report.lucro}
+                  <div className="space-y-8">
+                    {Object.entries(
+                      reports?.reduce((acc, report) => {
+                        const subId = report.sub_id || "Sem Sub ID";
+                        if (!acc[subId]) acc[subId] = [];
+                        acc[subId].push(report);
+                        return acc;
+                      }, {} as Record<string, typeof reports>) || {}
+                    ).map(([subId, groupReports]) => {
+                      const groupTotals = groupReports.reduce((acc, r) => ({
+                        receita: acc.receita + parseFloat(r.receita_total || "0"),
+                        gastos: acc.gastos + parseFloat(r.gasto_total || "0"),
+                        lucro: acc.lucro + parseFloat(r.lucro || "0"),
+                      }), { receita: 0, gastos: 0, lucro: 0 });
+
+                      return (
+                        <div key={subId} className="space-y-3">
+                          <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-bold text-lg text-foreground">{subId}</h3>
+                              <Badge variant="secondary" className="font-mono text-[10px]">
+                                {groupReports.length} {groupReports.length === 1 ? 'registro' : 'registros'}
+                              </Badge>
+                            </div>
+                            <div className="flex gap-4 text-xs font-mono">
+                              <span className="text-green-600">Rec: R$ {groupTotals.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                              <span className="text-red-500">Gas: R$ {groupTotals.gastos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                              <span className={`font-bold ${groupTotals.lucro >= 0 ? "text-green-700" : "text-red-700"}`}>
+                                Luc: R$ {groupTotals.lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </span>
-                            </TableCell>
-                            <TableCell>
-                              <AddExpenseDialog reportId={report.id} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                            </div>
+                          </div>
+                          <div className="rounded-xl border border-border/50 overflow-hidden bg-muted/5">
+                            <Table>
+                              <TableHeader className="bg-muted/30">
+                                <TableRow>
+                                  <TableHead className="py-2">Data</TableHead>
+                                  <TableHead className="py-2 text-right">Receita</TableHead>
+                                  <TableHead className="py-2 text-right">Gastos</TableHead>
+                                  <TableHead className="py-2 text-right">Lucro</TableHead>
+                                  <TableHead className="py-2 w-[80px]"></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {groupReports.map((report) => (
+                                  <TableRow key={report.id} className="hover:bg-muted/20">
+                                    <TableCell className="py-2 font-mono text-xs">
+                                      {format(new Date(report.data), "dd/MM/yyyy")}
+                                    </TableCell>
+                                    <TableCell className="py-2 text-right text-green-600 font-medium text-xs">
+                                      R$ {report.receita_total}
+                                    </TableCell>
+                                    <TableCell className="py-2 text-right text-red-500 font-medium text-xs">
+                                      R$ {report.gasto_total}
+                                    </TableCell>
+                                    <TableCell className="py-2 text-right font-bold text-xs">
+                                      <span className={parseFloat(report.lucro || "0") >= 0 ? "text-green-700" : "text-red-700"}>
+                                        R$ {report.lucro}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="py-2">
+                                      <AddExpenseDialog reportId={report.id} />
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

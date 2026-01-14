@@ -37,11 +37,13 @@ export function CreateReportDialog({ subId }: CreateReportDialogProps) {
     const taxaMeta = parseFloat(newData.taxa_meta_ads || "0");
     const taxaShopee = parseFloat(newData.taxa_shopee || "0");
     
-    // Cálculo: Receita - (Gastos + taxa_meta_ads) - (Receita * taxa_shopee / 100)
-    // Nota: Seguindo a instrução: Receita - (Gastos + taxa_meta_ads) e taxa_shopee
-    // Vamos simplificar conforme pedido: Receita - Gastos - taxa_meta_ads - (receita * taxa_shopee / 100)
-    const valorTaxaShopee = (receita * taxaShopee) / 100;
-    newData.lucro = (receita - gasto - taxaMeta - valorTaxaShopee).toFixed(2);
+    // Novo Cálculo conforme instruções:
+    // Cálculo Meta Ads: gasto_meta + (gasto_meta * taxa_meta_ads / 100)
+    // Cálculo Shopee: receita * taxa_shopee / 100
+    const gastoMetaTotal = gasto + (gasto * taxaMeta / 100);
+    const gastoShopeeTotal = (receita * taxaShopee) / 100;
+    
+    newData.lucro = (receita - gastoMetaTotal - gastoShopeeTotal).toFixed(2);
     
     setFormData(newData);
   };
@@ -52,9 +54,9 @@ export function CreateReportDialog({ subId }: CreateReportDialogProps) {
       await createReport.mutateAsync({
         sub_id: formData.sub_id,
         data: formData.data,
-        receita_total: formData.receita_total,
-        gasto_total: formData.gasto_total,
-        lucro: formData.lucro,
+        receita_total: parseFloat(formData.receita_total || "0"),
+        gasto_total: parseFloat(formData.gasto_total || "0"),
+        lucro: parseFloat(formData.lucro),
       });
       
       toast({
@@ -137,7 +139,7 @@ export function CreateReportDialog({ subId }: CreateReportDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="taxa_meta">Taxa Meta Ads (R$)</Label>
+              <Label htmlFor="taxa_meta">Taxa Meta Ads (%)</Label>
               <Input 
                 id="taxa_meta" 
                 type="number" 

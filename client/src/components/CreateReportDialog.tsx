@@ -20,6 +20,8 @@ export function CreateReportDialog({ subId }: CreateReportDialogProps) {
     data: format(new Date(), "yyyy-MM-dd"),
     receita_total: "",
     gasto_total: "0",
+    taxa_meta_ads: "12.15",
+    taxa_shopee: "9",
     lucro: "0",
   });
 
@@ -29,12 +31,17 @@ export function CreateReportDialog({ subId }: CreateReportDialogProps) {
   const handleChange = (field: keyof typeof formData, value: string) => {
     const newData = { ...formData, [field]: value };
     
-    // Auto-calculate profit if receita and gasto are present
-    if (field === 'receita_total' || field === 'gasto_total') {
-      const receita = parseFloat(newData.receita_total || "0");
-      const gasto = parseFloat(newData.gasto_total || "0");
-      newData.lucro = (receita - gasto).toFixed(2);
-    }
+    // Auto-calculate profit for visualization
+    const receita = parseFloat(newData.receita_total || "0");
+    const gasto = parseFloat(newData.gasto_total || "0");
+    const taxaMeta = parseFloat(newData.taxa_meta_ads || "0");
+    const taxaShopee = parseFloat(newData.taxa_shopee || "0");
+    
+    // Cálculo: Receita - (Gastos + taxa_meta_ads) - (Receita * taxa_shopee / 100)
+    // Nota: Seguindo a instrução: Receita - (Gastos + taxa_meta_ads) e taxa_shopee
+    // Vamos simplificar conforme pedido: Receita - Gastos - taxa_meta_ads - (receita * taxa_shopee / 100)
+    const valorTaxaShopee = (receita * taxaShopee) / 100;
+    newData.lucro = (receita - gasto - taxaMeta - valorTaxaShopee).toFixed(2);
     
     setFormData(newData);
   };
@@ -126,6 +133,29 @@ export function CreateReportDialog({ subId }: CreateReportDialogProps) {
               onChange={(e) => handleChange('gasto_total', e.target.value)}
               placeholder="0.00"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="taxa_meta">Taxa Meta Ads (R$)</Label>
+              <Input 
+                id="taxa_meta" 
+                type="number" 
+                step="0.01" 
+                value={formData.taxa_meta_ads} 
+                onChange={(e) => handleChange('taxa_meta_ads', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="taxa_shopee">Taxa Shopee (%)</Label>
+              <Input 
+                id="taxa_shopee" 
+                type="number" 
+                step="0.01" 
+                value={formData.taxa_shopee} 
+                onChange={(e) => handleChange('taxa_shopee', e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="p-4 bg-muted/50 rounded-lg flex justify-between items-center border border-border/50">

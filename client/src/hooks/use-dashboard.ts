@@ -244,7 +244,7 @@ export function useCreateManualReport() {
         data: report.data,
         receita_total: report.receita_total,
         gasto_total: report.gasto_total,
-        // 🔥 lucro NÃO deve ser enviado (coluna gerada)
+        // lucro removido daqui pois é calculado no banco
       };
 
       const { error } = await supabase.from("relatorios").upsert(payload, {

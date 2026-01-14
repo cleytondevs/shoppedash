@@ -218,53 +218,70 @@ export default function Dashboard() {
           {/* =========================
               RELATÓRIOS
           ========================= */}
-          <TabsContent value="reports">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {reportsLoading ? (
-                  <Skeleton className="h-32" />
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Sub ID</TableHead>
-                        <TableHead className="text-right">Receita</TableHead>
-                        <TableHead className="text-right">Gastos</TableHead>
-                        <TableHead className="text-right">Lucro</TableHead>
-                        <TableHead />
-                      </TableRow>
-                    </TableHeader>
+          <TabsContent value="reports" className="space-y-6">
+            {reportsLoading ? (
+              <Skeleton className="h-64" />
+            ) : (() => {
+              const groupedReports = (reports || []).reduce((acc: any, r: any) => {
+                const subId = r.sub_id || "Sem Sub ID";
+                if (!acc[subId]) acc[subId] = [];
+                acc[subId].push(r);
+                return acc;
+              }, {});
 
-                    <TableBody>
-                      {reports?.map((r) => (
-                        <TableRow key={r.id}>
-                          <TableCell>
-                            {safeFormatDate(r.data, "dd/MM/yyyy")}
-                          </TableCell>
-                          <TableCell>{r.sub_id ?? "Sem Sub ID"}</TableCell>
-                          <TableCell className="text-right text-green-600">
-                            R$ {r.receita_total}
-                          </TableCell>
-                          <TableCell className="text-right text-red-500">
-                            R$ {r.gasto_total}
-                          </TableCell>
-                          <TableCell className="text-right font-bold">
-                            R$ {r.lucro}
-                          </TableCell>
-                          <TableCell>
-                            <AddExpenseDialog reportId={r.id} />
-                          </TableCell>
+              return Object.entries(groupedReports).map(([subId, items]: [string, any]) => (
+                <Card key={subId} className="overflow-hidden">
+                  <CardHeader className="bg-muted/30 py-4 px-6">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                        {subId}
+                      </Badge>
+                      Relatórios de Vendas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent border-b">
+                          <TableHead className="pl-6">Data</TableHead>
+                          <TableHead className="text-right">Receita</TableHead>
+                          <TableHead className="text-right">Gastos</TableHead>
+                          <TableHead className="text-right">Lucro</TableHead>
+                          <TableHead className="w-[100px] pr-6"></TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+                      </TableHeader>
+                      <TableBody>
+                        {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
+                          <TableRow key={r.id}>
+                            <TableCell className="pl-6">
+                              {safeFormatDate(r.data, "dd/MM/yyyy")}
+                            </TableCell>
+                            <TableCell className="text-right text-green-600 font-medium">
+                              R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell className="text-right text-red-500">
+                              R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell className="text-right font-bold">
+                              R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell className="pr-6">
+                              <AddExpenseDialog reportId={r.id} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ));
+            })()}
+            {(reports || []).length === 0 && !reportsLoading && (
+              <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
+                <AlertCircle className="mx-auto mb-2" />
+                Nenhum relatório encontrado
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>

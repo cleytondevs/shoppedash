@@ -82,13 +82,13 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
               total: receita,
               quantidade: 1,
               origem: "Redes Sociais",
-              data: item.data
+              data: item.data,
             });
           } else {
             grouped.get(key).total += receita;
             grouped.get(key).quantidade += 1;
           }
-        } 
+        }
         // Se NÃO tiver Sub ID, mantém individual
         else {
           ungrouped.push({
@@ -97,7 +97,7 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
             total: receita,
             quantidade: 1,
             origem: "Shopee Vídeo",
-            data: item.data
+            data: item.data,
           });
         }
       });
@@ -116,18 +116,18 @@ export function useUploadCsv() {
   // ✅ Normalização local do valor da receita
   const parseReceita = (value: any) => {
     if (value === null || value === undefined) return 0;
-    
+
     let raw = String(value).replace("R$", "").replace(/\s/g, "");
-    
+
     // Se for apenas números (ex: 13527), tratar como centavos e dividir por 100
     if (/^\d+$/.test(raw)) {
       return Number(raw) / 100;
     }
-    
+
     // Se tiver ponto e vírgula (1.352,27), remover os pontos e trocar vírgula por ponto
     if (raw.includes(".") && raw.includes(",")) {
       raw = raw.replace(/\./g, "").replace(",", ".");
-    } 
+    }
     // Se tiver apenas vírgula (135,27), trocar por ponto
     else if (raw.includes(",")) {
       raw = raw.replace(",", ".");
@@ -242,12 +242,12 @@ export function useCreateManualReport() {
       }
 
       const payload = {
-        user_id: user.id, // 🔒 separação por usuário
+        user_id: user.id,
         sub_id: report.sub_id,
-        data: report.data, // ✅ respeita a data escolhida
+        data: report.data,
         receita_total: report.receita_total,
         gasto_total: report.gasto_total,
-        lucro: report.lucro,
+        // 🔥 lucro NÃO deve ser enviado (coluna gerada)
       };
 
       const { error } = await supabase.from("relatorios").upsert(payload, {

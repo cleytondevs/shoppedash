@@ -28,6 +28,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/login" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -67,25 +67,39 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
 
       // 🔥 AGRUPAMENTO REAL
       const grouped = new Map<string, any>();
+      const ungrouped: any[] = [];
 
       data.forEach((item) => {
-        const key = `${item.nome}-${item.sub_id ?? "video"}`;
-
         const receita = Number(item.receita || 0);
 
-        if (!grouped.has(key)) {
-          grouped.set(key, {
+        // Se tiver Sub ID, agrupa pelo Sub ID
+        if (item.sub_id) {
+          const key = `subid-${item.sub_id}`;
+          if (!grouped.has(key)) {
+            grouped.set(key, {
+              nome: "Produtos Agrupados",
+              sub_id: item.sub_id,
+              total: receita,
+              origem: "Redes Sociais",
+              data: item.data
+            });
+          } else {
+            grouped.get(key).total += receita;
+          }
+        } 
+        // Se NÃO tiver Sub ID, mantém individual
+        else {
+          ungrouped.push({
             nome: item.nome,
-            sub_id: item.sub_id,
+            sub_id: null,
             total: receita,
-            origem: item.sub_id ? "Redes Sociais" : "Shopee Vídeo",
+            origem: "Shopee Vídeo",
+            data: item.data
           });
-        } else {
-          grouped.get(key).total += receita;
         }
       });
 
-      return Array.from(grouped.values());
+      return [...Array.from(grouped.values()), ...ungrouped];
     },
   });
 }

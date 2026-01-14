@@ -96,21 +96,29 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
 export function useUploadCsv() {
   const queryClient = useQueryClient();
 
-  // ✅ Converte valor da Shopee corretamente (reais com vírgula → reais com ponto)
+  // ✅ Normalização local do valor da receita
   const parseReceita = (value: any) => {
     if (value === null || value === undefined) return 0;
-
-    const raw = String(value)
-      .replace("R$", "")
-      .replace(/\s/g, "")
-      .replace(/\./g, "") // Remove pontos de milhar se existirem (embora o usuário tenha dito que não existem, é padrão de segurança)
-      .replace(",", ".");
+    
+    let raw = String(value).replace("R$", "").replace(/\s/g, "");
+    
+    // Se for apenas números (ex: 13527), tratar como centavos e dividir por 100
+    if (/^\d+$/.test(raw)) {
+      return Number(raw) / 100;
+    }
+    
+    // Se tiver ponto e vírgula (1.352,27), remover os pontos e trocar vírgula por ponto
+    if (raw.includes(".") && raw.includes(",")) {
+      raw = raw.replace(/\./g, "").replace(",", ".");
+    } 
+    // Se tiver apenas vírgula (135,27), trocar por ponto
+    else if (raw.includes(",")) {
+      raw = raw.replace(",", ".");
+    }
+    // Se tiver apenas ponto (135.27), manter (o Number() já trata)
 
     const num = Number(raw);
-    if (isNaN(num)) return 0;
-
-    // Ajustado para não dividir por 100, tratando 135,27 diretamente como 135.27
-    return num;
+    return isNaN(num) ? 0 : num;
   };
 
   return useMutation({

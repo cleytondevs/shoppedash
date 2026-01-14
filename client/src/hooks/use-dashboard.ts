@@ -80,11 +80,13 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
               nome: "Produtos Agrupados",
               sub_id: item.sub_id,
               total: receita,
+              quantidade: 1,
               origem: "Redes Sociais",
               data: item.data
             });
           } else {
             grouped.get(key).total += receita;
+            grouped.get(key).quantidade += 1;
           }
         } 
         // Se NÃO tiver Sub ID, mantém individual
@@ -93,6 +95,7 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
             nome: item.nome,
             sub_id: null,
             total: receita,
+            quantidade: 1,
             origem: "Shopee Vídeo",
             data: item.data
           });

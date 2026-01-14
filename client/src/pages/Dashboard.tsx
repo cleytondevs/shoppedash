@@ -162,6 +162,7 @@ export default function Dashboard() {
                         <TableHead>Data</TableHead>
                         <TableHead>Produto</TableHead>
                         <TableHead>Sub ID</TableHead>
+                        <TableHead>Vendas</TableHead>
                         <TableHead>Origem</TableHead>
                         <TableHead className="text-right">Receita</TableHead>
                       </TableRow>
@@ -178,6 +179,12 @@ export default function Dashboard() {
 
                           <TableCell className="font-mono text-xs">
                             {item.sub_id ?? "-"}
+                          </TableCell>
+
+                          <TableCell>
+                            <Badge variant="secondary" className="font-bold">
+                              {item.quantidade}
+                            </Badge>
                           </TableCell>
 
                           <TableCell>

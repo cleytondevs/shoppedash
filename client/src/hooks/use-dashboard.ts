@@ -1,86 +1,142 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { z } from "zod";
 
+/* =========================
+   DASHBOARD STATS
+========================= */
 export function useDashboardStats() {
   return useQuery({
     queryKey: ["supabase", "stats"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const { data, error } = await supabase
-        .from('shopee_vendas')
-        .select('receita, sub_id')
-        .eq('user_id', user.id);
-      
+        .from("shopee_vendas")
+        .select("receita, sub_id")
+        .eq("user_id", user.id);
+
       if (error) throw error;
 
       let redesSociais = 0;
       let shopeeVideo = 0;
 
-      data?.forEach(v => {
-        const valor = typeof v.receita === 'string' ? parseFloat(v.receita || "0") : (v.receita || 0);
-        if (v.sub_id) {
-          redesSociais += valor;
-        } else {
-          shopeeVideo += valor;
-        }
+      data?.forEach((v) => {
+        const valor = Number(v.receita) || 0;
+        if (v.sub_id) redesSociais += valor;
+        else shopeeVideo += valor;
       });
 
       return {
-        ganhosRedesSociais: `R$ ${redesSociais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-        ganhosShopeeVideo: `R$ ${shopeeVideo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        ganhosRedesSociais: redesSociais,
+        ganhosShopeeVideo: shopeeVideo,
       };
-    }
+    },
   });
 }
 
-export function useDashboardProducts(filter?: 'all' | 'social' | 'video') {
+/* =========================
+   PRODUTOS
+========================= */
+export function useDashboardProducts(filter?: "all" | "social" | "video") {
   return useQuery({
     queryKey: ["supabase", "products", filter],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       let query = supabase
-        .from('shopee_vendas')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('data', { ascending: false });
-      
-      if (filter === 'social') {
-        query = query.not('sub_id', 'is', null);
-      } else if (filter === 'video') {
-        query = query.is('sub_id', null);
+        .from("shopee_vendas")
+        .select("nome, sub_id, receita, data")
+        .eq("user_id", user.id);
+
+      if (filter === "social") {
+        query = query.not("sub_id", "is", null);
+      }
+
+      if (filter === "video") {
+        query = query.is("sub_id", null);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data.map(v => ({
-        ...v,
-        origem: v.sub_id ? 'Redes Sociais' : 'Shopee Vídeo'
-      }));
-    }
+
+      // 🔥 AGRUPAMENTO REAL
+      const grouped = new Map<string, any>();
+
+      data.forEach((item) => {
+        const key = `${item.nome}-${item.sub_id ?? "video"}`;
+
+        const receita = Number(item.receita || 0);
+
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            nome: item.nome,
+            sub_id: item.sub_id,
+            total: receita,
+            origem: item.sub_id ? "Redes Sociais" : "Shopee Vídeo",
+          });
+        } else {
+          grouped.get(key).total += receita;
+        }
+      });
+
+      return Array.from(grouped.values());
+    },
   });
 }
 
+/* =========================
+   UPLOAD CSV (CORRIGIDO)
+========================= */
 export function useUploadCsv() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (rows: any[]) => {
-      const { data, error } = await supabase
-        .from('shopee_vendas')
-        .insert(rows.map(row => ({ 
-          data: row.data,
-          nome: row.nome,
-          receita: Number(parseFloat(String(row.receita || "0").replace("R$", "").replace(".", "").replace(",", ".")).toFixed(2)),
-          sub_id: row.sub_id || null
-        })));
-      
-      if (error) throw error;
-      return data;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      if (!rows.length) return;
+
+      const dataReferencia = rows[0].data;
+
+      // 🔴 PASSO 1 — APAGAR dados antigos do MESMO DIA
+      const { error: deleteError } = await supabase
+        .from("shopee_vendas")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("data", dataReferencia);
+
+      if (deleteError) throw deleteError;
+
+      // 🟢 PASSO 2 — INSERIR dados novos
+      const payload = rows.map((row) => ({
+        user_id: user.id,
+        data: row.data,
+        nome: row.nome || "Produto sem nome",
+        sub_id: row.sub_id || null,
+        receita: Number(
+          String(row.receita || "0")
+            .replace("R$", "")
+            .replace(/\./g, "")
+            .replace(",", "."),
+        ),
+      }));
+
+      const { error: insertError } = await supabase
+        .from("shopee_vendas")
+        .insert(payload);
+
+      if (insertError) throw insertError;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supabase", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["supabase", "products"] });
@@ -88,86 +144,99 @@ export function useUploadCsv() {
   });
 }
 
-export function useReports(date?: string, range?: 'today' | 'yesterday' | 'week' | 'month') {
+/* =========================
+   RELATÓRIOS
+========================= */
+export function useReports(
+  date?: string,
+  range?: "today" | "yesterday" | "week" | "month",
+) {
   return useQuery({
     queryKey: ["supabase", "reports", date, range],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       let query = supabase
-        .from('relatorios')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('data', { ascending: false });
+        .from("relatorios")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("data", { ascending: false });
 
-      if (date) {
-        query = query.eq('data', date);
-      } else if (range) {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        
-        if (range === 'today') {
-          query = query.eq('data', todayStr);
-        } else if (range === 'yesterday') {
-          const yesterday = new Date(today);
-          yesterday.setDate(today.getDate() - 1);
-          query = query.eq('data', yesterday.toISOString().split('T')[0]);
-        } else if (range === 'week') {
-          const lastWeek = new Date(today);
-          lastWeek.setDate(today.getDate() - 7);
-          query = query.gte('data', lastWeek.toISOString().split('T')[0]);
-        } else if (range === 'month') {
-          const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-          query = query.gte('data', firstDay.toISOString().split('T')[0]);
-        }
-      }
+      if (date) query = query.eq("data", date);
 
       const { data, error } = await query;
       if (error) throw error;
       return data;
-    }
+    },
   });
 }
 
+/* =========================
+   CRIAR RELATÓRIO MANUAL
+========================= */
 export function useCreateManualReport() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (report: any) => {
-      const { data, error } = await supabase
-        .from('relatorios')
-        .upsert({ 
-          sub_id: report.sub_id,
-          data: report.data,
-          receita_total: report.receita_total,
-          gasto_total: report.gasto_total,
-          lucro: report.lucro
-        }, { onConflict: 'sub_id,data' });
-      if (error) throw error;
-      return data ? data[0] : null;
+    mutationFn: async (report: {
+      sub_id: string;
+      data: string; // yyyy-mm-dd
+      receita_total: number;
+      gasto_total: number;
+      lucro: number;
+    }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const payload = {
+        user_id: user.id, // 🔒 separação por usuário
+        sub_id: report.sub_id,
+        data: report.data, // ✅ respeita a data escolhida
+        receita_total: report.receita_total,
+        gasto_total: report.gasto_total,
+        lucro: report.lucro,
+      };
+
+      const { error } = await supabase.from("relatorios").upsert(payload, {
+        onConflict: "user_id,sub_id,data", // 🔑 chave correta
+      });
+
+      if (error) {
+        console.error("Erro ao criar relatório manual:", error);
+        throw error;
+      }
+
+      return true;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });
-    }
+    },
   });
 }
 
+/* =========================
+   GASTOS
+========================= */
 export function useCreateExpense() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (expense: any) => {
-      const { data, error } = await supabase
-        .from('gastos')
-        .insert({ 
-          relatorio_id: expense.relatorio_id,
-          descricao: expense.descricao,
-          valor: expense.valor
-        });
+      const { error } = await supabase.from("gastos").insert(expense);
+
       if (error) throw error;
-      return data ? data[0] : null;
+      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });
-    }
+    },
   });
 }

@@ -229,17 +229,45 @@ export default function Dashboard() {
                 return acc;
               }, {});
 
-              return Object.entries(groupedReports).map(([subId, items]: [string, any]) => (
-                <Card key={subId} className="overflow-hidden">
-                  <CardHeader className="bg-muted/30 py-4 px-6">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        {subId}
-                      </Badge>
-                      Relatórios de Vendas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
+              return Object.entries(groupedReports).map(([subId, items]: [string, any]) => {
+                const totalReceita = items.reduce((sum: number, r: any) => sum + Number(r.receita_total || 0), 0);
+                const totalGastos = items.reduce((sum: number, r: any) => sum + Number(r.gasto_total || 0), 0);
+                const totalLucro = items.reduce((sum: number, r: any) => sum + Number(r.lucro || 0), 0);
+
+                return (
+                  <Card key={subId} className="overflow-hidden">
+                    <CardHeader className="bg-muted/30 py-4 px-6">
+                      <div className="flex flex-col gap-4">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            {subId}
+                          </Badge>
+                          Relatórios de Vendas
+                        </CardTitle>
+                        
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="bg-background/50 p-3 rounded-lg border">
+                            <p className="text-xs text-muted-foreground uppercase font-semibold">Receita Total</p>
+                            <p className="text-lg font-bold text-green-600">
+                              R$ {totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          <div className="bg-background/50 p-3 rounded-lg border">
+                            <p className="text-xs text-muted-foreground uppercase font-semibold">Gastos Total</p>
+                            <p className="text-lg font-bold text-red-500">
+                              R$ {totalGastos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          <div className="bg-background/50 p-3 rounded-lg border">
+                            <p className="text-xs text-muted-foreground uppercase font-semibold">Lucro Total</p>
+                            <p className="text-lg font-bold">
+                              R$ {totalLucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent border-b">

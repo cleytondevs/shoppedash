@@ -78,24 +78,43 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background pb-12">
       {/* HEADER */}
       <header className="border-b bg-card/50 sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Visão Geral</h1>
-            <p className="text-sm text-muted-foreground">
-              {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
-            </p>
+        <div className="container mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex justify-between items-center w-full md:w-auto">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">Visão Geral</h1>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+              </p>
+            </div>
+            <div className="md:hidden flex items-center gap-2">
+              <span className="text-[10px] font-medium text-muted-foreground truncate max-w-[100px]">
+                {user?.email}
+              </span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleLogout}
+                className="text-red-500 h-8 px-2"
+              >
+                Sair
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-muted-foreground">
+          <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
+            <span className="hidden md:inline text-sm font-medium text-muted-foreground">
               {user?.email}
             </span>
-            <div className="flex gap-2">
-              <CreateReportDialog />
-              <UploadCsvDialog />
+            <div className="flex gap-2 w-full md:w-auto">
+              <div className="flex-1 md:flex-none">
+                <CreateReportDialog />
+              </div>
+              <div className="flex-1 md:flex-none">
+                <UploadCsvDialog />
+              </div>
               <Button 
                 variant="outline" 
                 onClick={handleLogout}
-                className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                className="hidden md:flex text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
               >
                 Sair
               </Button>
@@ -104,9 +123,9 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8 space-y-8">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-8 space-y-6 md:space-y-8">
         {/* METRICS */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:grid-cols-3 gap-6">
           {statsLoading ? (
             <>
               <Skeleton className="h-32" />
@@ -156,12 +175,12 @@ export default function Dashboard() {
           ========================= */}
           <TabsContent value="products">
             <Card>
-              <CardHeader className="flex justify-between">
+              <CardHeader className="flex flex-col md:flex-row md:justify-between gap-4">
                 <div>
                   <CardTitle>Produtos</CardTitle>
                   <CardDescription>Produtos com e sem Sub ID</CardDescription>
                 </div>
-                <div className="relative w-72">
+                <div className="relative w-full md:w-72">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     className="pl-9"
@@ -172,9 +191,9 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="overflow-x-auto p-0 md:p-6">
                 {productsLoading ? (
-                  <Skeleton className="h-32" />
+                  <div className="p-6"><Skeleton className="h-32" /></div>
                 ) : filteredProducts?.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <AlertCircle className="mx-auto mb-2" />
@@ -184,48 +203,48 @@ export default function Dashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Produto</TableHead>
-                        <TableHead>Sub ID</TableHead>
-                        <TableHead>Vendas</TableHead>
-                        <TableHead>Origem</TableHead>
-                        <TableHead className="text-right">Receita</TableHead>
+                        <TableHead className="whitespace-nowrap px-4">Data</TableHead>
+                        <TableHead className="whitespace-nowrap px-4">Produto</TableHead>
+                        <TableHead className="whitespace-nowrap px-4">Sub ID</TableHead>
+                        <TableHead className="whitespace-nowrap px-4">Vendas</TableHead>
+                        <TableHead className="whitespace-nowrap px-4">Origem</TableHead>
+                        <TableHead className="text-right whitespace-nowrap px-4">Receita</TableHead>
                       </TableRow>
                     </TableHeader>
 
                     <TableBody>
                       {filteredProducts!.map((item, idx) => (
                         <TableRow key={idx}>
-                          <TableCell>{safeFormatDate(undefined)}</TableCell>
+                          <TableCell className="px-4">{safeFormatDate(undefined)}</TableCell>
 
-                          <TableCell className="font-medium max-w-[300px] truncate">
+                          <TableCell className="font-medium max-w-[200px] md:max-w-[300px] truncate px-4">
                             {item.nome}
                           </TableCell>
 
-                          <TableCell className="font-mono text-xs">
+                          <TableCell className="font-mono text-[10px] px-4">
                             {item.sub_id ?? "-"}
                           </TableCell>
 
-                          <TableCell>
-                            <Badge variant="secondary" className="font-bold">
+                          <TableCell className="px-4">
+                            <Badge variant="secondary" className="font-bold text-xs">
                               {item.quantidade}
                             </Badge>
                           </TableCell>
 
-                          <TableCell>
+                          <TableCell className="px-4">
                             <Badge
                               variant="outline"
-                              className={
+                              className={`text-[10px] px-1.5 py-0 ${
                                 item.origem === "Redes Sociais"
                                   ? "bg-blue-500/10 text-blue-700"
                                   : "bg-orange-500/10 text-orange-700"
-                              }
+                              }`}
                             >
                               {item.origem}
                             </Badge>
                           </TableCell>
 
-                          <TableCell className="text-right font-bold">
+                          <TableCell className="text-right font-bold whitespace-nowrap px-4 text-sm">
                             R${" "}
                             {item.total.toLocaleString("pt-BR", {
                               minimumFractionDigits: 2,
@@ -292,33 +311,33 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-0">
+                    <CardContent className="p-0 overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow className="hover:bg-transparent border-b">
-                            <TableHead className="pl-6">Data</TableHead>
-                            <TableHead className="text-right">Receita</TableHead>
-                            <TableHead className="text-right">Gastos</TableHead>
-                            <TableHead className="text-right">Lucro</TableHead>
-                            <TableHead className="w-[100px] pr-6"></TableHead>
+                            <TableHead className="pl-4 md:pl-6 whitespace-nowrap">Data</TableHead>
+                            <TableHead className="text-right whitespace-nowrap">Receita</TableHead>
+                            <TableHead className="text-right whitespace-nowrap">Gastos</TableHead>
+                            <TableHead className="text-right whitespace-nowrap">Lucro</TableHead>
+                            <TableHead className="w-[80px] md:w-[100px] pr-4 md:pr-6"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
                             <TableRow key={r.id}>
-                              <TableCell className="pl-6">
+                              <TableCell className="pl-4 md:pl-6 text-sm">
                                 {safeFormatDate(r.data, "dd/MM/yyyy")}
                               </TableCell>
-                              <TableCell className="text-right text-green-600 font-medium">
+                              <TableCell className="text-right text-green-600 font-medium text-sm whitespace-nowrap">
                                 R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
-                              <TableCell className="text-right text-red-500">
+                              <TableCell className="text-right text-red-500 text-sm whitespace-nowrap">
                                 R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
-                              <TableCell className="text-right font-bold">
+                              <TableCell className="text-right font-bold text-sm whitespace-nowrap">
                                 R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                               </TableCell>
-                              <TableCell className="pr-6">
+                              <TableCell className="pr-4 md:pr-6">
                                 <AddExpenseDialog reportId={r.id} />
                               </TableCell>
                             </TableRow>

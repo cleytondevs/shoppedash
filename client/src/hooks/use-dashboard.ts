@@ -96,45 +96,66 @@ export function useDashboardProducts(filter?: "all" | "social" | "video") {
 export function useUploadCsv() {
   const queryClient = useQueryClient();
 
+  // ✅ Converte valor da Shopee corretamente (reais com vírgula → reais com ponto)
+  const parseReceita = (value: any) => {
+    if (value === null || value === undefined) return 0;
+
+    const raw = String(value)
+      .replace("R$", "")
+      .replace(/\s/g, "")
+      .replace(/\./g, "") // Remove pontos de milhar se existirem (embora o usuário tenha dito que não existem, é padrão de segurança)
+      .replace(",", ".");
+
+    const num = Number(raw);
+    if (isNaN(num)) return 0;
+
+    // Ajustado para não dividir por 100, tratando 135,27 diretamente como 135.27
+    return num;
+  };
+
   return useMutation({
     mutationFn: async (rows: any[]) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
 
       if (!rows.length) return;
 
       const dataReferencia = rows[0].data;
 
-      // 🔴 PASSO 1 — APAGAR dados antigos do MESMO DIA
+      // 🔴 Remove registros antigos do mesmo dia
       const { error: deleteError } = await supabase
         .from("shopee_vendas")
         .delete()
         .eq("user_id", user.id)
         .eq("data", dataReferencia);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error("Erro ao apagar dados antigos:", deleteError);
+        throw deleteError;
+      }
 
-      // 🟢 PASSO 2 — INSERIR dados novos
+      // 🟢 Insere dados novos corrigidos
       const payload = rows.map((row) => ({
         user_id: user.id,
         data: row.data,
         nome: row.nome || "Produto sem nome",
         sub_id: row.sub_id || null,
-        receita: Number(
-          String(row.receita || "0")
-            .replace("R$", "")
-            .replace(/\./g, "")
-            .replace(",", "."),
-        ),
+        receita: parseReceita(row.receita),
       }));
 
       const { error: insertError } = await supabase
         .from("shopee_vendas")
         .insert(payload);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Erro ao inserir vendas:", insertError);
+        throw insertError;
+      }
     },
 
     onSuccess: () => {

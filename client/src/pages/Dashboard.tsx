@@ -77,7 +77,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background pb-12">
       {/* HEADER */}
-      <header className="border-b bg-card/50 sticky top-0 z-10">
+      <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex justify-between items-center w-full md:w-auto">
             <div>

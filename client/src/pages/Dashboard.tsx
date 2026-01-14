@@ -268,41 +268,42 @@ export default function Dashboard() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-transparent border-b">
-                          <TableHead className="pl-6">Data</TableHead>
-                          <TableHead className="text-right">Receita</TableHead>
-                          <TableHead className="text-right">Gastos</TableHead>
-                          <TableHead className="text-right">Lucro</TableHead>
-                          <TableHead className="w-[100px] pr-6"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
-                          <TableRow key={r.id}>
-                            <TableCell className="pl-6">
-                              {safeFormatDate(r.data, "dd/MM/yyyy")}
-                            </TableCell>
-                            <TableCell className="text-right text-green-600 font-medium">
-                              R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </TableCell>
-                            <TableCell className="text-right text-red-500">
-                              R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </TableCell>
-                            <TableCell className="text-right font-bold">
-                              R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </TableCell>
-                            <TableCell className="pr-6">
-                              <AddExpenseDialog reportId={r.id} />
-                            </TableCell>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="hover:bg-transparent border-b">
+                            <TableHead className="pl-6">Data</TableHead>
+                            <TableHead className="text-right">Receita</TableHead>
+                            <TableHead className="text-right">Gastos</TableHead>
+                            <TableHead className="text-right">Lucro</TableHead>
+                            <TableHead className="w-[100px] pr-6"></TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              ));
+                        </TableHeader>
+                        <TableBody>
+                          {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
+                            <TableRow key={r.id}>
+                              <TableCell className="pl-6">
+                                {safeFormatDate(r.data, "dd/MM/yyyy")}
+                              </TableCell>
+                              <TableCell className="text-right text-green-600 font-medium">
+                                R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right text-red-500">
+                                R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="text-right font-bold">
+                                R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                              <TableCell className="pr-6">
+                                <AddExpenseDialog reportId={r.id} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                );
+              });
             })()}
             {(reports || []).length === 0 && !reportsLoading && (
               <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">

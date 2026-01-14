@@ -205,7 +205,7 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
 
-              <CardContent className="overflow-x-auto p-0 md:p-6">
+              <CardContent className="p-0 md:p-6">
                 {productsLoading ? (
                   <div className="p-6"><Skeleton className="h-32" /></div>
                 ) : filteredProducts?.length === 0 ? (
@@ -214,38 +214,73 @@ export default function Dashboard() {
                     Nenhum produto encontrado
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="whitespace-nowrap px-4">Produto</TableHead>
-                        <TableHead className="whitespace-nowrap px-4">Sub ID</TableHead>
-                        <TableHead className="whitespace-nowrap px-4">Vendas</TableHead>
-                        <TableHead className="whitespace-nowrap px-4">Origem</TableHead>
-                        <TableHead className="text-right whitespace-nowrap px-4">Receita</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <>
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="whitespace-nowrap px-4">Produto</TableHead>
+                            <TableHead className="whitespace-nowrap px-4">Sub ID</TableHead>
+                            <TableHead className="whitespace-nowrap px-4">Vendas</TableHead>
+                            <TableHead className="whitespace-nowrap px-4">Origem</TableHead>
+                            <TableHead className="text-right whitespace-nowrap px-4">Receita</TableHead>
+                          </TableRow>
+                        </TableHeader>
 
-                    <TableBody>
+                        <TableBody>
+                          {filteredProducts!.map((item, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell className="font-medium max-w-[200px] md:max-w-[300px] truncate px-4">
+                                {item.nome}
+                              </TableCell>
+
+                              <TableCell className="font-mono text-[10px] px-4">
+                                {item.sub_id ?? "-"}
+                              </TableCell>
+
+                              <TableCell className="px-4">
+                                <Badge variant="secondary" className="font-bold text-xs">
+                                  {item.quantidade}
+                                </Badge>
+                              </TableCell>
+
+                              <TableCell className="px-4">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] px-1.5 py-0 ${
+                                    item.origem === "Redes Sociais"
+                                      ? "bg-blue-500/10 text-blue-700"
+                                      : "bg-orange-500/10 text-orange-700"
+                                  }`}
+                                >
+                                  {item.origem}
+                                </Badge>
+                              </TableCell>
+
+                              <TableCell className="text-right font-bold whitespace-nowrap px-4 text-sm">
+                                R${" "}
+                                {item.total.toLocaleString("pt-BR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden divide-y">
                       {filteredProducts!.map((item, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-medium max-w-[200px] md:max-w-[300px] truncate px-4">
-                            {item.nome}
-                          </TableCell>
-
-                          <TableCell className="font-mono text-[10px] px-4">
-                            {item.sub_id ?? "-"}
-                          </TableCell>
-
-                          <TableCell className="px-4">
-                            <Badge variant="secondary" className="font-bold text-xs">
-                              {item.quantidade}
-                            </Badge>
-                          </TableCell>
-
-                          <TableCell className="px-4">
+                        <div key={idx} className="p-4 space-y-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-medium text-sm line-clamp-2 flex-1">
+                              {item.nome}
+                            </span>
                             <Badge
                               variant="outline"
-                              className={`text-[10px] px-1.5 py-0 ${
+                              className={`text-[10px] whitespace-nowrap px-1.5 py-0 ${
                                 item.origem === "Redes Sociais"
                                   ? "bg-blue-500/10 text-blue-700"
                                   : "bg-orange-500/10 text-orange-700"
@@ -253,18 +288,29 @@ export default function Dashboard() {
                             >
                               {item.origem}
                             </Badge>
-                          </TableCell>
-
-                          <TableCell className="text-right font-bold whitespace-nowrap px-4 text-sm">
-                            R${" "}
-                            {item.total.toLocaleString("pt-BR", {
-                              minimumFractionDigits: 2,
-                            })}
-                          </TableCell>
-                        </TableRow>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-muted-foreground uppercase text-[10px] font-semibold">Sub ID</span>
+                              <span className="font-mono">{item.sub_id ?? "-"}</span>
+                            </div>
+                            <div className="flex flex-col gap-1 items-center">
+                              <span className="text-muted-foreground uppercase text-[10px] font-semibold">Vendas</span>
+                              <Badge variant="secondary" className="font-bold h-5 px-1.5">
+                                {item.quantidade}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-col gap-1 items-end">
+                              <span className="text-muted-foreground uppercase text-[10px] font-semibold">Receita</span>
+                              <span className="font-bold text-sm">
+                                R$ {item.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>

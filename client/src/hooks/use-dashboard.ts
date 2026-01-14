@@ -283,3 +283,21 @@ export function useCreateExpense() {
     },
   });
 }
+
+/* =========================
+   EXCLUIR RELATÓRIO
+   ========================= */
+export function useDeleteReport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase.from("relatorios").delete().eq("id", id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["supabase", "reports"] });
+    },
+  });
+}

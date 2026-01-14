@@ -6,11 +6,24 @@ import {
   useDashboardStats,
   useDashboardProducts,
   useReports,
+  useDeleteReport,
 } from "@/hooks/use-dashboard";
 import { MetricCard } from "@/components/MetricCard";
 import { UploadCsvDialog } from "@/components/UploadCsvDialog";
 import { CreateReportDialog } from "@/components/CreateReportDialog";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -60,6 +73,7 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: products, isLoading: productsLoading } = useDashboardProducts();
   const { data: reports, isLoading: reportsLoading } = useReports();
+  const deleteReport = useDeleteReport();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("products");
 
@@ -340,7 +354,33 @@ export default function Dashboard() {
                                   R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell className="pr-6">
-                                  <AddExpenseDialog reportId={r.id} />
+                                  <div className="flex items-center gap-2">
+                                    <AddExpenseDialog reportId={r.id} />
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Excluir Relatório</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                          <AlertDialogAction 
+                                            onClick={() => deleteReport.mutate(r.id)}
+                                            className="bg-red-500 hover:bg-red-600"
+                                          >
+                                            Excluir
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -356,7 +396,33 @@ export default function Dashboard() {
                               <span className="text-sm font-semibold text-muted-foreground">
                                 {safeFormatDate(r.data, "dd/MM/yyyy")}
                               </span>
-                              <AddExpenseDialog reportId={r.id} />
+                              <div className="flex items-center gap-2">
+                                <AddExpenseDialog reportId={r.id} />
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Excluir Relatório</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja excluir este relatório?
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => deleteReport.mutate(r.id)}
+                                        className="bg-red-500 hover:bg-red-600"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2 text-center">
                               <div className="flex flex-col">

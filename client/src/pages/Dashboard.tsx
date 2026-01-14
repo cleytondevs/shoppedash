@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import {
   useDashboardStats,
   useDashboardProducts,
@@ -52,6 +53,7 @@ function safeFormatDate(date?: string, pattern = "dd/MM") {
 
 export default function Dashboard() {
   const [productSearch, setProductSearch] = useState("");
+  const { user } = useAuth();
 
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: products, isLoading: productsLoading } = useDashboardProducts();
@@ -80,16 +82,21 @@ export default function Dashboard() {
               {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
-          <div className="flex gap-2">
-            <CreateReportDialog />
-            <UploadCsvDialog />
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
-            >
-              Sair
-            </Button>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-muted-foreground">
+              {user?.email}
+            </span>
+            <div className="flex gap-2">
+              <CreateReportDialog />
+              <UploadCsvDialog />
+              <Button 
+                variant="outline" 
+                onClick={handleLogout}
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+              >
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </header>

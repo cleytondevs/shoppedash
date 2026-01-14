@@ -289,61 +289,98 @@ export default function Dashboard() {
                           Relatórios de Vendas
                         </CardTitle>
                         
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="bg-background/50 p-3 rounded-lg border">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="bg-background/50 p-3 rounded-lg border flex flex-row sm:flex-col justify-between items-center sm:items-start">
                             <p className="text-xs text-muted-foreground uppercase font-semibold">Receita Total</p>
-                            <p className="text-lg font-bold text-green-600">
+                            <p className="text-base sm:text-lg font-bold text-green-600">
                               R$ {totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                           </div>
-                          <div className="bg-background/50 p-3 rounded-lg border">
+                          <div className="bg-background/50 p-3 rounded-lg border flex flex-row sm:flex-col justify-between items-center sm:items-start">
                             <p className="text-xs text-muted-foreground uppercase font-semibold">Gastos Total</p>
-                            <p className="text-lg font-bold text-red-500">
+                            <p className="text-base sm:text-lg font-bold text-red-500">
                               R$ {totalGastos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                           </div>
-                          <div className="bg-background/50 p-3 rounded-lg border">
+                          <div className="bg-background/50 p-3 rounded-lg border flex flex-row sm:flex-col justify-between items-center sm:items-start">
                             <p className="text-xs text-muted-foreground uppercase font-semibold">Lucro Total</p>
-                            <p className="text-lg font-bold">
+                            <p className="text-base sm:text-lg font-bold">
                               R$ {totalLucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </p>
                           </div>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-0 overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="hover:bg-transparent border-b">
-                            <TableHead className="pl-4 md:pl-6 whitespace-nowrap">Data</TableHead>
-                            <TableHead className="text-right whitespace-nowrap">Receita</TableHead>
-                            <TableHead className="text-right whitespace-nowrap">Gastos</TableHead>
-                            <TableHead className="text-right whitespace-nowrap">Lucro</TableHead>
-                            <TableHead className="w-[80px] md:w-[100px] pr-4 md:pr-6"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
-                            <TableRow key={r.id}>
-                              <TableCell className="pl-4 md:pl-6 text-sm">
-                                {safeFormatDate(r.data, "dd/MM/yyyy")}
-                              </TableCell>
-                              <TableCell className="text-right text-green-600 font-medium text-sm whitespace-nowrap">
-                                R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-right text-red-500 text-sm whitespace-nowrap">
-                                R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="text-right font-bold text-sm whitespace-nowrap">
-                                R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </TableCell>
-                              <TableCell className="pr-4 md:pr-6">
-                                <AddExpenseDialog reportId={r.id} />
-                              </TableCell>
+                    <CardContent className="p-0">
+                      {/* Desktop View */}
+                      <div className="hidden sm:block overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="hover:bg-transparent border-b">
+                              <TableHead className="pl-6 whitespace-nowrap">Data</TableHead>
+                              <TableHead className="text-right whitespace-nowrap">Receita</TableHead>
+                              <TableHead className="text-right whitespace-nowrap">Gastos</TableHead>
+                              <TableHead className="text-right whitespace-nowrap">Lucro</TableHead>
+                              <TableHead className="w-[100px] pr-6"></TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
+                              <TableRow key={r.id}>
+                                <TableCell className="pl-6 text-sm">
+                                  {safeFormatDate(r.data, "dd/MM/yyyy")}
+                                </TableCell>
+                                <TableCell className="text-right text-green-600 font-medium text-sm whitespace-nowrap">
+                                  R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right text-red-500 text-sm whitespace-nowrap">
+                                  R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-sm whitespace-nowrap">
+                                  R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="pr-6">
+                                  <AddExpenseDialog reportId={r.id} />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Mobile View */}
+                      <div className="sm:hidden divide-y">
+                        {items.sort((a: any, b: any) => new Date(b.data).getTime() - new Date(a.data).getTime()).map((r: any) => (
+                          <div key={r.id} className="p-4 space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-semibold text-muted-foreground">
+                                {safeFormatDate(r.data, "dd/MM/yyyy")}
+                              </span>
+                              <AddExpenseDialog reportId={r.id} />
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-center">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground uppercase">Receita</span>
+                                <span className="text-xs font-bold text-green-600">
+                                  R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground uppercase">Gastos</span>
+                                <span className="text-xs font-bold text-red-500">
+                                  R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-muted-foreground uppercase">Lucro</span>
+                                <span className="text-xs font-bold">
+                                  R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 );

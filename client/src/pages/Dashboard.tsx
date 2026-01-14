@@ -152,6 +152,7 @@ export default function Dashboard() {
                 title="Redes Sociais"
                 value={`R$ ${stats?.ganhosRedesSociais.toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })}`}
                 icon={<TrendingUp className="h-4 w-4" />}
                 variant="success"
@@ -160,6 +161,7 @@ export default function Dashboard() {
                 title="Shopee Vídeo"
                 value={`R$ ${stats?.ganhosShopeeVideo.toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })}`}
                 icon={<DollarSign className="h-4 w-4" />}
                 variant="warning"
@@ -170,6 +172,7 @@ export default function Dashboard() {
                   stats!.ganhosRedesSociais + stats!.ganhosShopeeVideo
                 ).toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })}`}
                 icon={<Calendar className="h-4 w-4" />}
               />
@@ -262,6 +265,7 @@ export default function Dashboard() {
                                 R${" "}
                                 {item.total.toLocaleString("pt-BR", {
                                   minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
                                 })}
                               </TableCell>
                             </TableRow>
@@ -303,7 +307,7 @@ export default function Dashboard() {
                             <div className="flex flex-col gap-1 items-end">
                               <span className="text-muted-foreground uppercase text-[10px] font-semibold">Receita</span>
                               <span className="font-bold text-sm">
-                                R$ {item.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                R$ {item.total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
                             </div>
                           </div>
@@ -350,19 +354,19 @@ export default function Dashboard() {
                           <div className="bg-background/50 p-3 rounded-lg border flex flex-row sm:flex-col justify-between items-center sm:items-start">
                             <p className="text-xs text-muted-foreground uppercase font-semibold">Receita Total</p>
                             <p className="text-base sm:text-lg font-bold text-green-600">
-                              R$ {totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              R$ {totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           </div>
                           <div className="bg-background/50 p-3 rounded-lg border flex flex-row sm:flex-col justify-between items-center sm:items-start">
                             <p className="text-xs text-muted-foreground uppercase font-semibold">Gastos Total</p>
                             <p className="text-base sm:text-lg font-bold text-red-500">
-                              R$ {totalGastos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              R$ {totalGastos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           </div>
                           <div className="bg-background/50 p-3 rounded-lg border flex flex-row sm:flex-col justify-between items-center sm:items-start">
                             <p className="text-xs text-muted-foreground uppercase font-semibold">Lucro Total</p>
                             <p className="text-base sm:text-lg font-bold">
-                              R$ {totalLucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              R$ {totalLucro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           </div>
                         </div>
@@ -388,13 +392,13 @@ export default function Dashboard() {
                                   {safeFormatDate(r.data, "dd/MM/yyyy")}
                                 </TableCell>
                                 <TableCell className="text-right text-green-600 font-medium text-sm whitespace-nowrap">
-                                  R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell className="text-right text-red-500 text-sm whitespace-nowrap">
-                                  R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell className="text-right font-bold text-sm whitespace-nowrap">
-                                  R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell className="pr-6">
                                   <div className="flex items-center gap-2">
@@ -471,19 +475,19 @@ export default function Dashboard() {
                               <div className="flex flex-col">
                                 <span className="text-[10px] text-muted-foreground uppercase">Receita</span>
                                 <span className="text-xs font-bold text-green-600">
-                                  R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {Number(r.receita_total).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-[10px] text-muted-foreground uppercase">Gastos</span>
                                 <span className="text-xs font-bold text-red-500">
-                                  R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {Number(r.gasto_total).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                               </div>
                               <div className="flex flex-col">
                                 <span className="text-[10px] text-muted-foreground uppercase">Lucro</span>
                                 <span className="text-xs font-bold">
-                                  R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {Number(r.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                               </div>
                             </div>

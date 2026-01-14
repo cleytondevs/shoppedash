@@ -150,14 +150,11 @@ export function useUploadCsv() {
 
       if (!rows.length) return;
 
-      const dataReferencia = rows[0].data;
-
-      // 🔴 Remove registros antigos do mesmo dia
+      // 🔴 Remove TODOS os registros antigos do usuário (substituição completa)
       const { error: deleteError } = await supabase
         .from("shopee_vendas")
         .delete()
-        .eq("user_id", user.id)
-        .eq("data", dataReferencia);
+        .eq("user_id", user.id);
 
       if (deleteError) {
         console.error("Erro ao apagar dados antigos:", deleteError);

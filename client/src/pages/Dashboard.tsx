@@ -217,7 +217,6 @@ export default function Dashboard() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="whitespace-nowrap px-4">Data</TableHead>
                         <TableHead className="whitespace-nowrap px-4">Produto</TableHead>
                         <TableHead className="whitespace-nowrap px-4">Sub ID</TableHead>
                         <TableHead className="whitespace-nowrap px-4">Vendas</TableHead>
@@ -229,8 +228,6 @@ export default function Dashboard() {
                     <TableBody>
                       {filteredProducts!.map((item, idx) => (
                         <TableRow key={idx}>
-                          <TableCell className="px-4">{safeFormatDate(undefined)}</TableCell>
-
                           <TableCell className="font-medium max-w-[200px] md:max-w-[300px] truncate px-4">
                             {item.nome}
                           </TableCell>

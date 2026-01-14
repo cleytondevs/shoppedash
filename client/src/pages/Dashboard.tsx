@@ -37,6 +37,8 @@ import {
   TrendingUp,
   Calendar,
   AlertCircle,
+  LayoutDashboard,
+  FileText,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -59,6 +61,7 @@ export default function Dashboard() {
   const { data: products, isLoading: productsLoading } = useDashboardProducts();
   const { data: reports, isLoading: reportsLoading } = useReports();
   const [, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState("products");
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -142,8 +145,8 @@ export default function Dashboard() {
         </div>
 
         {/* TABS */}
-        <Tabs defaultValue="products">
-          <TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="hidden md:inline-flex">
             <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
@@ -336,6 +339,35 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* MOBILE BOTTOM NAVBAR */}
+      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px]">
+        <div className="bg-card/80 backdrop-blur-lg border shadow-2xl rounded-full p-1.5 flex items-center justify-around gap-1">
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${
+              activeTab === "products"
+                ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                : "text-muted-foreground hover:bg-muted/50"
+            }`}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="text-[10px] font-medium mt-0.5">Painel</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab("reports")}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all ${
+              activeTab === "reports"
+                ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                : "text-muted-foreground hover:bg-muted/50"
+            }`}
+          >
+            <FileText className="h-5 w-5" />
+            <span className="text-[10px] font-medium mt-0.5">Relatórios</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

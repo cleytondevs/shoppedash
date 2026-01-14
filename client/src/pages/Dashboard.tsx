@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { supabase } from "@/lib/supabase";
 import {
   useDashboardStats,
   useDashboardProducts,
@@ -54,6 +56,12 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: products, isLoading: productsLoading } = useDashboardProducts();
   const { data: reports, isLoading: reportsLoading } = useReports();
+  const [, setLocation] = useLocation();
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setLocation("/login");
+  }
 
   const filteredProducts = products?.filter((p) =>
     `${p.nome} ${p.sub_id ?? ""}`
@@ -75,6 +83,13 @@ export default function Dashboard() {
           <div className="flex gap-2">
             <CreateReportDialog />
             <UploadCsvDialog />
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+            >
+              Sair
+            </Button>
           </div>
         </div>
       </header>

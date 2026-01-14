@@ -120,11 +120,20 @@ export function UploadCsvDialog() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="file">Arquivo CSV</Label>
+            <Label htmlFor="file" className="cursor-pointer border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 hover:bg-muted/50 transition-colors flex flex-col items-center gap-2">
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                {file ? file.name : "Selecionar arquivo CSV"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Arraste ou clique para selecionar
+              </span>
+            </Label>
             <Input
               id="file"
               type="file"
-              accept=".csv"
+              accept=".csv,text/csv,text/plain,application/vnd.ms-excel"
+              className="sr-only"
               onChange={handleFileChange}
             />
           </div>
